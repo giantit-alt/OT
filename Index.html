@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#1a1f2e"/>
+<title>GIH Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f4f6fb; --surface:#fff; --border:#e8edf5;
+  --text:#111827; --text2:#4b5563; --text3:#9ca3af;
+  --blue:#2563eb; --blue2:#3b82f6; --green:#16a34a;
+  --amber:#d97706; --red:#dc2626; --purple:#7c3aed;
+  --ff-en:'Plus Jakarta Sans',sans-serif;
+  --ff-th:'IBM Plex Sans Thai',sans-serif;
+  --r:18px; --rsm:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:var(--ff-th);color:var(--text);}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:430px;margin:0 auto;background:var(--bg);overflow:hidden;}
+
+/* VIEWS */
+.view{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.view.active{display:flex;}
+.ifv{display:none;flex-direction:column;height:100%;}
+.ifv.active{display:flex;}
+
+/* IFRAME TOPBAR */
+/* ─── IFRAME TOPBAR (compact, always on top) ─── */
+.itb{
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 10px;
+  padding-top:env(safe-area-inset-top,0px);
+  display:flex;align-items:center;gap:8px;
+  flex-shrink:0;height:calc(48px + env(safe-area-inset-top,0px));
+  position:relative;z-index:10;
+}
+/* Back button — compact pill style */
+.ibtn-back{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:99px;padding:6px 12px 6px 8px;
+  cursor:pointer;flex-shrink:0;color:var(--text2);
+  font-family:var(--ff-en);font-size:12px;font-weight:600;
+  transition:background .15s;white-space:nowrap;
+}
+.ibtn-back i{font-size:13px;}
+.ibtn-back:active{background:#e2e8f0;}
+/* App title in center */
+.itb-center{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;
+}
+.itb-app-icon{
+  width:26px;height:26px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+}
+.itb-title{font-family:var(--ff-en);font-size:13px;font-weight:700;color:var(--text);letter-spacing:-.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Reload button — right side */
+.ibtn-reload{
+  width:32px;height:32px;background:transparent;border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text3);font-size:14px;flex-shrink:0;
+  border-radius:8px;transition:background .15s;
+}
+.ibtn-reload:active{background:var(--bg);}
+
+/* Remove old pill padding */
+.ifwrap{flex:1;overflow:hidden;position:relative;}
+.ifwrap iframe{width:100%;height:100%;border:none;display:block;}
+.ifl{position:absolute;inset:0;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:10;transition:opacity .4s;}
+.ifl.done{opacity:0;pointer-events:none;}
+.ifl-icon{width:60px;height:60px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;}
+.ifl h3{font-family:var(--ff-en);font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.2px;}
+.ifl p{font-size:12px;color:var(--text3);}
+.pbar{width:140px;height:3px;background:var(--border);border-radius:99px;overflow:hidden;}
+.pfill{height:100%;background:var(--blue2);border-radius:99px;animation:prog 1.6s ease-in-out infinite;}
+@keyframes prog{0%{width:0;margin-left:0}50%{width:55%;margin-left:15%}100%{width:0;margin-left:100%}}
+
+/* HOME SCROLL */
+.hscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:88px;}
+.hscroll::-webkit-scrollbar{display:none;}
+
+/* ── HERO SCENE ── */
+.hero-scene{position:relative;overflow:hidden;flex-shrink:0;}
+.scene-svg{display:block;width:100%;}
+/* Gradient fade ขอบล่าง scene เชื่อมกับ body */
+.hero-scene::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:60px;
+  background:linear-gradient(to bottom, transparent, var(--bg));
+  pointer-events:none;z-index:1;
+}
+.hero-overlay{
+  position:absolute;inset:0;z-index:2;
+  display:flex;flex-direction:column;
+  padding:max(env(safe-area-inset-top,0px),18px) 18px 0;
+  pointer-events:none;
+}
+.ho-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto;}
+.ho-logo{
+  width:40px;height:40px;border-radius:13px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ho-logo i{color:#fff;font-size:17px;}
+.ho-brand{flex:1;padding:0 10px;}
+.ho-brand-name{font-family:var(--ff-en);font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px;text-shadow:0 1px 4px rgba(0,0,0,.3);}
+.ho-brand-sub{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px;}
+.ho-clock{text-align:right;}
+.ho-time{font-family:var(--ff-en);font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px;line-height:1;text-shadow:0 1px 6px rgba(0,0,0,.3);}
+.ho-date{font-size:10px;color:rgba(255,255,255,.7);margin-top:2px;}
+/* Greeting at bottom of hero */
+.ho-bottom{
+  padding:0 0 14px;pointer-events:auto;
+}
+.ho-greeting{
+  background:transparent;
+  border:none;
+  border-radius:18px;padding:14px 16px;
+}
+.ho-g-hi{
+  font-family:var(--ff-en);font-size:9px;font-weight:700;
+  color:rgba(148,163,184,.9);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;
+}
+.ho-g-name{
+  font-family:var(--ff-en);font-size:21px;font-weight:800;
+  color:#fff;letter-spacing:-.4px;margin-bottom:2px;
+  text-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.ho-g-sub{font-size:12px;color:rgba(191,219,254,.8);}
+
+/* HOME BODY (pulls up over hero rounded) */
+.hbody{
+  background:var(--bg);border-radius:24px 24px 0 0;
+  padding:20px 16px 0;margin-top:-28px;
+  position:relative;z-index:2;
+  box-shadow:0 -4px 20px rgba(0,0,0,.06);
+}
+
+/* Section */
+.sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sec-t{font-family:var(--ff-en);font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:6px;}
+.sec-t i{font-size:12px;}
+
+/* APP CARDS */
+.acards{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.acard{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:17px;display:flex;align-items:center;gap:14px;
+  cursor:pointer;position:relative;overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);transition:transform .12s,box-shadow .12s;
+}
+.acard:active{transform:scale(0.982);box-shadow:none;}
+.acard::after{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 2px 2px 0;}
+.ac-m::after{background:var(--blue);}
+.ac-e::after{background:var(--amber);}
+.aci{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.aim{background:#eff6ff;color:var(--blue);}
+.aie{background:#fffbeb;color:var(--amber);}
+.acb{flex:1;min-width:0;}
+.acr{font-family:var(--ff-en);font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.acn{font-family:var(--ff-en);font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.3px;margin-bottom:4px;line-height:1.2;}
+.acd{font-size:11.5px;color:var(--text2);line-height:1.5;}
+.actags{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.atag{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;display:inline-flex;align-items:center;gap:3px;}
+.atb{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
+.ata{background:#fffbeb;color:#b45309;border:1px solid #fde68a;}
+.atg{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+.acarr{width:34px;height:34px;background:var(--bg);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:14px;flex-shrink:0;}
+
+/* QUICK */
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px;}
+.qcard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:14px 8px 12px;
+  text-align:center;cursor:pointer;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  transition:transform .1s,box-shadow .1s;
+}
+.qcard:active{transform:scale(0.95);box-shadow:none;background:var(--bg);}
+.qi{width:42px;height:42px;border-radius:13px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;font-size:19px;}
+.ql{font-size:11px;font-weight:700;color:var(--text);line-height:1.3;}
+
+/* COMPANY CARD */
+.ccard{background:#1a1f2e;border-radius:var(--r);padding:15px 17px;display:flex;align-items:center;gap:13px;margin-bottom:8px;position:relative;overflow:hidden;}
+.ccard::before{content:'';position:absolute;top:-15px;right:-15px;width:80px;height:80px;background:rgba(59,130,246,.12);border-radius:50%;}
+.cc-ico{font-size:26px;flex-shrink:0;}
+.cc-body{flex:1;}
+.cc-name{font-family:var(--ff-en);font-size:13px;font-weight:700;color:#fff;letter-spacing:-.1px;margin-bottom:2px;}
+.cc-sub{font-size:10px;color:rgba(148,163,184,.7);}
+.cc-badge{font-family:var(--ff-en);font-size:9px;font-weight:700;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);color:rgba(148,163,184,.8);padding:3px 8px;border-radius:99px;flex-shrink:0;letter-spacing:.04em;}
+
+/* ─── TAB BAR WRAPPER ─── */
+.tbwrap{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  z-index:50; /* ต่ำกว่า tab bar ของแอปใน iframe */
+  display:flex;flex-direction:column;align-items:center;
+  pointer-events:none; /* wrapper ไม่รับ event ทั้งหมด */
+}
+
+/* ─── PILL (ติ่ง) — โชว์เฉพาะตอนอยู่ใน app ─── */
+.tbpill{
+  pointer-events:auto; /* รับ touch เฉพาะตัวติ่งเท่านั้น */
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--border);border-bottom:none;
+  border-radius:16px 16px 0 0;
+  padding:7px 32px 5px;
+  width:auto; /* แคบตามเนื้อหา ไม่เต็มความกว้าง */
+  display:none;
+  flex-direction:column;align-items:center;gap:4px;
+  cursor:pointer;
+  box-shadow:0 -3px 14px rgba(0,0,0,.08);
+  transition:background .2s;
+}
+.tbpill:active{background:rgba(235,240,248,.97);}
+.pill-bar{width:34px;height:4px;background:var(--border);border-radius:99px;transition:background .2s;}
+.tbpill:active .pill-bar{background:#93c5fd;}
+.pill-txt{
+  font-family:var(--ff-en);font-size:10px;font-weight:700;
+  color:var(--text3);display:flex;align-items:center;gap:5px;
+  transition:all .25s;white-space:nowrap;
+}
+.pill-txt i{font-size:11px;}
+.tbwrap.bar-open .pill-txt{max-height:0;opacity:0;overflow:hidden;margin:0;padding:0;}
+.tbwrap.bar-open .tbpill{padding:6px 32px 4px;border-radius:12px 12px 0 0;}
+
+/* ─── TAB BAR ─── */
+.tabbar{
+  pointer-events:none;
+  width:100%;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  padding:0 10px;
+  display:flex;
+  max-height:0;overflow:hidden;
+  transition:max-height .38s cubic-bezier(0.16,1,0.3,1),
+             padding .38s cubic-bezier(0.16,1,0.3,1);
+}
+/* หน้าหลัก: bar แสดงตลอด ไม่มีติ่ง */
+.tbwrap.mode-home .tbpill{display:none;}
+.tbwrap.mode-home .tabbar{
+  pointer-events:auto;
+  max-height:90px;
+  padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px));
+}
+/* หน้าแอป: ติ่งโชว์ bar ซ่อน */
+.tbwrap.mode-app .tbpill{display:flex;}
+/* หน้าแอป + เปิด bar */
+.tbwrap.mode-app.bar-open .tabbar{
+  pointer-events:auto;
+  max-height:90px;
+  padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px));
+}
+
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:12px;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;}
+.tb.on{background:#eff6ff;}
+.tb i{font-size:20px;color:var(--text3);transition:color .15s,transform .15s;}
+.tb.on i{color:var(--blue);transform:scale(1.08);}
+.tb span{font-size:9.5px;font-weight:700;color:var(--text3);transition:color .15s;}
+.tb.on span{color:var(--blue);}
+
+/* ─── NEWS FEED ─── */
+.news-item{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:12px 13px 12px 15px;
+  margin-bottom:8px;display:flex;gap:11px;align-items:flex-start;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:background .15s,transform .1s;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.news-item:active{background:#f8fafc;transform:scale(0.988);}
+.news-item::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;
+  width:3.5px;border-radius:0;
+}
+.ni-urgent::before{background:#dc2626;}
+.ni-info::before{background:#2563eb;}
+.ni-normal::before{background:#d97706;}
+.ni-icon{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.ni-ico-urg{background:#fee2e2;color:#dc2626;}
+.ni-ico-inf{background:#eff6ff;color:#2563eb;}
+.ni-ico-nrm{background:#fef3c7;color:#d97706;}
+.ni-body{flex:1;min-width:0;}
+.ni-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.ni-tag{font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.ni-tag-urg{background:#fee2e2;color:#dc2626;}
+.ni-tag-inf{background:#eff6ff;color:#2563eb;}
+.ni-tag-nrm{background:#fef3c7;color:#d97706;}
+.ni-date{font-size:10px;color:var(--text3);}
+.ni-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ni-preview{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ni-thumb{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);}
+.ni-arr{color:var(--text3);font-size:11px;flex-shrink:0;align-self:center;}
+
+/* ─── NEWS DETAIL SHEET ─── */
+.news-sheet-box{
+  max-height:90dvh;overflow-y:auto;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));
+}
+.nd-img{width:100%;border-radius:14px;object-fit:cover;max-height:200px;display:block;margin-bottom:14px;border:1px solid var(--border);}
+.nd-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;margin-bottom:10px;}
+.nd-title{font-family:var(--ff-en);font-size:19px;font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.3;margin-bottom:6px;}
+.nd-date{font-size:11px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:5px;}
+.nd-divider{height:1px;background:var(--border);margin-bottom:14px;}
+.nd-body{font-size:14px;color:var(--text2);line-height:1.8;white-space:pre-wrap;}
+
+/* ─── HOLIDAY CARD ─── */
+.hol-next{
+  background:linear-gradient(135deg,#059669,#0f766e);
+  border-radius:var(--r);padding:15px 16px;margin-bottom:8px;
+  display:flex;align-items:center;gap:14px;cursor:pointer;
+  transition:transform .1s;box-shadow:0 2px 10px rgba(5,150,105,.2);
+}
+.hol-next:active{transform:scale(0.988);}
+.hol-next-icon{
+  width:50px;height:50px;background:rgba(255,255,255,.2);
+  border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+}
+.hol-next-info{flex:1;}
+.hol-next-label{font-size:9px;font-weight:700;color:rgba(167,243,208,.9);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;}
+.hol-next-name{font-family:var(--ff-en);font-size:15px;font-weight:800;color:#fff;margin-bottom:2px;letter-spacing:-.1px;}
+.hol-next-date{font-size:11px;color:rgba(167,243,208,.85);}
+.hol-next-days{
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);
+  border-radius:12px;padding:8px 12px;text-align:center;flex-shrink:0;min-width:56px;
+}
+.hol-days-num{font-family:var(--ff-en);font-size:22px;font-weight:800;color:#fff;line-height:1;}
+.hol-days-lbl{font-size:9px;font-weight:700;color:rgba(167,243,208,.85);text-transform:uppercase;}
+
+/* ─── HOLIDAY LIST SHEET ─── */
+.holsheet-box{height:88dvh;display:flex;flex-direction:column;padding:0;}
+.holsheet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.holsheet-head h3{font-family:var(--ff-en);font-size:15px;font-weight:800;color:var(--text);}
+.holsheet-scroll{flex:1;overflow-y:auto;padding:16px 20px calc(20px + env(safe-area-inset-bottom,0px));}
+.hol-month{
+  display:inline-flex;align-items:center;gap:7px;font-family:var(--ff-en);
+  font-size:11px;font-weight:800;background:var(--blue);color:#fff;
+  padding:5px 14px;border-radius:99px;margin:20px 0 10px;
+  box-shadow:0 3px 8px rgba(37,99,235,.25);
+}
+.hol-month:first-child{margin-top:0;}
+.hol-row{
+  background:#fff;border:1px solid var(--border);border-radius:14px;
+  padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:12px;
+}
+.hol-row.passed{opacity:.5;}
+.hol-date-box{
+  background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fca5a5;
+  border-radius:12px;width:48px;height:48px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;
+}
+.hol-row.passed .hol-date-box{background:#f1f5f9;border-color:var(--border);}
+.hol-dm{font-size:9px;font-weight:800;color:#b91c1c;text-transform:uppercase;}
+.hol-row.passed .hol-dm{color:var(--text3);}
+.hol-dd{font-size:18px;font-weight:800;color:#7f1d1d;line-height:1;}
+.hol-row.passed .hol-dd{color:var(--text2);}
+.hol-info-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.hol-info-sub{font-size:10px;color:var(--text2);display:flex;align-items:center;gap:5px;}
+.hol-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;}
+.hol-badge-up{background:#dcfce7;color:#166534;border:1px solid #86efac;}
+.hol-badge-pa{background:#f1f5f9;color:#64748b;border:1px solid var(--border);}
+
+/* Loading skeleton */
+.skel{
+  background:linear-gradient(90deg,#f0f2f8 25%,#e8edf5 50%,#f0f2f8 75%);
+  background-size:200% 100%;animation:skel 1.4s ease-in-out infinite;
+  border-radius:8px;
+}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.tw{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:999;width:calc(100% - 28px);max-width:340px;pointer-events:none;}
+.toast{background:#111827;color:#fff;border-radius:10px;padding:11px 15px;display:flex;align-items:center;gap:10px;margin-bottom:8px;animation:tIn .28s ease both;pointer-events:all;font-family:var(--ff-en);font-size:13px;font-weight:500;}
+.toast.out{animation:tOut .22s ease forwards;}
+.toast .ti{font-size:15px;flex-shrink:0;color:#60a5fa;}
+@keyframes tIn{from{opacity:0;transform:translateY(-10px) scale(.94);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes tOut{to{opacity:0;transform:translateY(-8px) scale(.94);}}
+
+/* SPLASH */
+.splash{position:fixed;inset:0;z-index:9999;background:#1a1f2e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.spl-logo{width:84px;height:84px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:26px;display:flex;align-items:center;justify-content:center;animation:popIn .55s cubic-bezier(.34,1.56,.64,1) both;}
+.spl-logo i{font-size:38px;color:#fff;}
+.spl-name{font-family:var(--ff-en);font-size:28px;font-weight:800;color:#fff;letter-spacing:-.5px;animation:fadeUp .45s .18s ease both;}
+.spl-tag{font-size:13px;color:rgba(148,163,184,.8);animation:fadeUp .45s .3s ease both;}
+.spl-dots{display:flex;gap:6px;animation:fadeUp .45s .44s ease both;}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);}
+.dot:nth-child(1){animation:blk 1.2s 0s ease-in-out infinite;}
+.dot:nth-child(2){animation:blk 1.2s .18s ease-in-out infinite;}
+.dot:nth-child(3){animation:blk 1.2s .36s ease-in-out infinite;}
+@keyframes popIn{from{opacity:0;transform:scale(.55);}to{opacity:1;transform:scale(1);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes blk{0%,100%{background:rgba(255,255,255,.2);}50%{background:#60a5fa;}}
+
+/* FULLSCREEN OVERLAY */
+#fsov{position:fixed;inset:0;z-index:99999;background:rgba(15,20,30,.96);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:44px 32px;cursor:pointer;color:#fff;}
+.fs-ico{width:84px;height:84px;background:rgba(37,99,235,.2);border:2px solid rgba(96,165,250,.35);border-radius:26px;display:flex;align-items:center;justify-content:center;animation:popIn 1s ease both;}
+.fs-ico i{font-size:36px;color:#93c5fd;}
+.fs-title{font-family:var(--ff-en);font-size:26px;font-weight:800;letter-spacing:-.5px;}
+.fs-sub{font-size:13px;color:rgba(255,255,255,.55);line-height:1.75;}
+.fs-btn{font-family:var(--ff-en);font-size:13px;font-weight:600;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:13px 40px;letter-spacing:.01em;}
+
+/* Card entrance */
+@keyframes slideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.acard:nth-child(1){animation:slideIn .3s .05s ease both;}
+.acard:nth-child(2){animation:slideIn .3s .12s ease both;}
+
+/* SVG scene animations */
+@keyframes cloudDrift{0%{transform:translateX(0);}100%{transform:translateX(18px);}}
+@keyframes cloudDrift2{0%{transform:translateX(0);}100%{transform:translateX(-14px);}}
+@keyframes sunPulse{0%,100%{opacity:.2;transform:scale(1);}50%{opacity:.1;transform:scale(1.15);}}
+@keyframes moonGlow{0%,100%{opacity:.15;}50%{opacity:.05;}}
+@keyframes starTwinkle{0%,100%{opacity:.3;}50%{opacity:1;}}
+@keyframes birdFly{0%{transform:translateX(0) translateY(0);}50%{transform:translateX(30px) translateY(-5px);}100%{transform:translateX(60px) translateY(0);opacity:0;}}
+@keyframes personBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
+@keyframes flagWave{0%,100%{d:path("M 280 68 L 296 72 L 280 76");}50%{d:path("M 280 68 L 298 70 L 280 76");}}
+@keyframes smokeRise{0%{transform:translateY(0);opacity:.5;}100%{transform:translateY(-12px);opacity:0;}}
+@keyframes waterShimmer{0%,100%{opacity:.4;}50%{opacity:.7;}}
+@keyframes leafSway{0%,100%{transform:rotate(0deg);}50%{transform:rotate(4deg);}}
+/* ─── SHEET OVERLAY ─── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-end;justify-content:center;}
+.sheet-overlay.hidden{display:none;}
+.sheet-box{background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:8px 20px 20px;animation:sheetUp .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:8px auto 16px;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="splash">
+  <div class="spl-logo"><i class="fas fa-building"></i></div>
+  <div class="spl-name">GIH Portal</div>
+  <div class="spl-tag">Giant Inter Holding Co., Ltd.</div>
+  <div class="spl-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appShell">
+
+  <!-- HOME VIEW -->
+  <div class="view active" id="vHome">
+    <div class="hscroll">
+
+      <!-- HERO SCENE -->
+      <div class="hero-scene">
+        <!-- Dynamic SVG scene (injected by JS) -->
+        <div id="sceneWrap"></div>
+
+        <!-- Overlay -->
+        <div class="hero-overlay">
+          <div class="ho-top">
+            <div class="ho-logo"><i class="fas fa-building"></i></div>
+            <div class="ho-brand">
+              <div class="ho-brand-name">GIH Portal</div>
+              <div class="ho-brand-sub">Giant Inter Holding</div>
+            </div>
+            <div class="ho-clock">
+              <div class="ho-time" id="clk">--:--</div>
+              <div class="ho-date" id="clkDate">-</div>
+            </div>
+          </div>
+          <div class="ho-bottom">
+            <div class="ho-greeting">
+              <div class="ho-g-hi">Employee Portal</div>
+              <div class="ho-g-name" id="greetTxt">สวัสดีครับ 👋</div>
+              <div class="ho-g-sub" id="greetSub">เลือกแอปที่ต้องการใช้งาน</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="hbody">
+        <div class="sec" style="margin-bottom:14px;">
+          <div class="sec-t"><i class="fas fa-grid-2"></i> Applications</div>
+        </div>
+        <div class="acards">
+          <div class="acard ac-m" onclick="openApp('manager')">
+            <div class="aci aim"><i class="fas fa-user-shield"></i></div>
+            <div class="acb">
+              <div class="acr">Manager / Supervisor</div>
+              <div class="acn">OT Approval</div>
+              <div class="acd">อนุมัติ OT & ลา · ดูรายงาน · ลงนาม</div>
+              <div class="actags">
+                <span class="atag atb"><i class="fas fa-check"></i> Approve OT</span>
+                <span class="atag atg"><i class="fas fa-calendar-check"></i> Leave</span>
+                <span class="atag atb"><i class="fas fa-chart-pie"></i> Report</span>
+              </div>
+            </div>
+            <div class="acarr"><i class="fas fa-chevron-right"></i></div>
+          </div>
+          <div class="acard ac-e" onclick="openApp('employee')">
+            <div class="aci aie"><i class="fas fa-clock"></i></div>
+            <div class="acb">
+              <div class="acr">Employee</div>
+              <div class="acn">OT &amp; Leave Request</div>
+              <div class="acd">ยื่นขอ OT & ลา · ตรวจสอบสถานะ</div>
+              <div class="actags">
+                <span class="atag ata"><i class="fas fa-plus"></i> Request OT</span>
+                <span class="atag ata"><i class="fas fa-calendar-plus"></i> Leave</span>
+                <span class="atag atg"><i class="fas fa-list-check"></i> Status</span>
+              </div>
+            </div>
+            <div class="acarr"><i class="fas fa-chevron-right"></i></div>
+          </div>
+        </div>
+
+        <!-- Quick Actions — 6 ปุ่ม -->
+        <div class="sec" style="margin-top:4px;"><div class="sec-t"><i class="fas fa-bolt"></i> Quick Actions</div></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
+          <div class="qcard" onclick="openApp('employee')">
+            <div class="qi" style="background:#fffbeb;color:#d97706;"><i class="fas fa-plus"></i></div>
+            <div class="ql">ขอ OT</div>
+          </div>
+          <div class="qcard" onclick="openApp('employee')">
+            <div class="qi" style="background:#f0fdf4;color:#16a34a;"><i class="fas fa-calendar-plus"></i></div>
+            <div class="ql">ขอลา</div>
+          </div>
+          <div class="qcard" onclick="openApp('manager')">
+            <div class="qi" style="background:#eff6ff;color:#2563eb;"><i class="fas fa-check-double"></i></div>
+            <div class="ql">อนุมัติ</div>
+          </div>
+          <div class="qcard" onclick="openApp('employee')">
+            <div class="qi" style="background:#f5f3ff;color:#7c3aed;"><i class="fas fa-history"></i></div>
+            <div class="ql">ประวัติ</div>
+          </div>
+          <div class="qcard" onclick="openApp('manager')">
+            <div class="qi" style="background:#ecfeff;color:#0891b2;"><i class="fas fa-chart-bar"></i></div>
+            <div class="ql">รายงาน</div>
+          </div>
+          <div class="qcard" onclick="openApp('manager')">
+            <div class="qi" style="background:#fdf4ff;color:#9333ea;"><i class="fas fa-pen-nib"></i></div>
+            <div class="ql">ลงนาม</div>
+          </div>
+        </div>
+        <div style="height:4px;"></div>
+
+        <!-- ข่าวสารโรงงาน -->
+        <div class="sec" style="margin-top:4px;">
+          <div class="sec-t"><i class="fas fa-bullhorn"></i> ข่าวสารโรงงาน</div>
+        </div>
+        <div id="newsSection">
+          <!-- skeleton -->
+          <div class="news-item" style="pointer-events:none;">
+            <div class="skel" style="width:36px;height:36px;border-radius:10px;flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="skel" style="height:10px;width:60%;margin-bottom:7px;"></div>
+              <div class="skel" style="height:13px;width:85%;margin-bottom:5px;"></div>
+              <div class="skel" style="height:10px;width:70%;"></div>
+            </div>
+          </div>
+          <div class="news-item" style="pointer-events:none;">
+            <div class="skel" style="width:36px;height:36px;border-radius:10px;flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="skel" style="height:10px;width:50%;margin-bottom:7px;"></div>
+              <div class="skel" style="height:13px;width:90%;margin-bottom:5px;"></div>
+              <div class="skel" style="height:10px;width:65%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- วันหยุดถัดไป -->
+        <div class="sec" style="margin-top:4px;">
+          <div class="sec-t"><i class="fas fa-gifts"></i> วันหยุดถัดไป</div>
+        </div>
+        <div id="holSection">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;align-items:center;gap:12px;">
+            <div class="skel" style="width:50px;height:50px;border-radius:14px;flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="skel" style="height:9px;width:40%;margin-bottom:7px;"></div>
+              <div class="skel" style="height:15px;width:70%;margin-bottom:5px;"></div>
+              <div class="skel" style="height:10px;width:55%;"></div>
+            </div>
+            <div class="skel" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;"></div>
+          </div>
+        </div>
+
+        <div style="height:8px;"></div>
+      </div>
+    </div>
+  </div><!-- /vHome -->
+
+  <!-- MANAGER VIEW -->
+  <div class="ifv" id="vManager">
+    <div class="ifwrap">
+      <div class="ifl" id="ldMgr">
+        <div class="ifl-icon" style="background:#eff6ff;color:#2563eb;"><i class="fas fa-user-shield"></i></div>
+        <h3>OT Approval</h3><p>กำลังโหลดระบบ...</p>
+        <div class="pbar"><div class="pfill"></div></div>
+      </div>
+      <iframe id="ifrMgr" title="OT Approval" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <!-- EMPLOYEE VIEW -->
+  <div class="ifv" id="vEmployee">
+    <div class="ifwrap">
+      <div class="ifl" id="ldEmp">
+        <div class="ifl-icon" style="background:#fffbeb;color:#d97706;"><i class="fas fa-clock"></i></div>
+        <h3>OT &amp; Leave Request</h3><p>กำลังโหลดระบบ...</p>
+        <div class="pbar"><div class="pfill"></div></div>
+      </div>
+      <iframe id="ifrEmp" title="OT Leave Request" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <!-- TAB BAR + PILL -->
+  <div class="tbwrap mode-home" id="tbwrap">
+    <div class="tbpill" id="tbpill" onclick="toggleBar()">
+      <div class="pill-bar"></div>
+      <div class="pill-txt" id="pillTxt"><i class="fas fa-bars"></i> เมนู</div>
+    </div>
+    <div class="tabbar" id="tabBar">
+      <div class="tb on" id="tb-home" onclick="closeApp()">
+        <i class="fas fa-house"></i><span>Home</span>
+      </div>
+      <div class="tb" id="tb-manager" onclick="goApp('manager')">
+        <i class="fas fa-user-shield"></i><span>Approval</span>
+      </div>
+      <div class="tb" id="tb-employee" onclick="goApp('employee')">
+        <i class="fas fa-clock"></i><span>OT & Leave</span>
+      </div>
+    </div>
+  </div><!-- /tbwrap -->
+
+</div><!-- /appShell -->
+
+<!-- News Detail Modal -->
+<div class="sheet-overlay hidden" id="newsModal" onclick="closeNewsModal()">
+  <div class="sheet-box news-sheet-box" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div id="ndTag"></div>
+      <button onclick="closeNewsModal()" style="background:var(--bg);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="ndImgWrap" style="display:none;"><img id="ndImg" src="" alt="" class="nd-img" onerror="document.getElementById('ndImgWrap').style.display='none'"/></div>
+    <div class="nd-title" id="ndTitle"></div>
+    <div class="nd-date" id="ndDate"></div>
+    <div class="nd-divider"></div>
+    <div class="nd-body" id="ndBody"></div>
+  </div>
+</div>
+
+<!-- Holiday Sheet Modal -->
+<div class="sheet-overlay hidden" id="holModal" onclick="closeHolModal()">
+  <div class="sheet-box holsheet-box" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="holsheet-head">
+      <h3><i class="fas fa-calendar-alt" style="color:var(--blue);margin-right:8px;"></i>ปฏิทินวันหยุดประจำปี</h3>
+      <button onclick="closeHolModal()" style="background:var(--bg);border:1px solid var(--border);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="holsheet-scroll" id="holList"></div>
+  </div>
+</div>
+
+<div class="tw" id="tw"></div>
+
+<div id="fsov">
+  <div class="fs-ico"><i class="fas fa-building"></i></div>
+  <div class="fs-title">GIH Portal</div>
+  <div class="fs-sub" id="fsSub">กำลังเตรียมระบบ...</div>
+  <div class="fs-btn">แตะเพื่อเริ่มใช้งาน</div>
+</div>
+
+<script>
+/* ── UTILITY (ต้องอยู่บนสุด) ── */
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+var URLS = {
+  manager:  'https://script.google.com/macros/s/AKfycbzKvNe6u-3Iecn1eXrZA7b1bxq6gkOk0AVlYPQbjLLdBtBIU3948r5LaZ6yI13ykf1v/exec',
+  employee: 'https://script.google.com/macros/s/AKfycbxKkCcW0vTO1ObVlb1hM2Ca0VlehPmJYQX3pFrianD8wYPo5HlfkaymY1ocmJbvlQ4O/exec'
+};
+var _loaded = {manager:false,employee:false};
+
+/* ── SCENE BUILDER ── */
+function buildScene() {
+  var h = new Date().getHours();
+  var isMorn  = h >= 6  && h < 11;
+  var isDay   = h >= 11 && h < 17;
+  var isEvening = h >= 17 && h < 20;
+  var isNight = h >= 20 || h < 6;
+
+  var W = 430, H = 240;
+
+  /* Sky colors */
+  var sky1, sky2, sky3;
+  if (isMorn)    { sky1='#ff9a3c'; sky2='#ffcf77'; sky3='#ffe8b0'; }
+  else if (isDay){ sky1='#1e88e5'; sky2='#42a5f5'; sky3='#90caf9'; }
+  else if (isEvening){ sky1='#b71c1c'; sky2='#e64a19'; sky3='#ff8f00'; }
+  else           { sky1='#0d1b2a'; sky2='#0a2540'; sky3='#0f3460'; }
+
+  /* Ground */
+  var g1 = isNight ? '#0f2027' : (isEvening ? '#4e342e' : '#388e3c');
+  var g2 = isNight ? '#162032' : (isEvening ? '#3e2723' : '#2e7d32');
+
+  /* Road */
+  var road = isNight ? '#1c2a38' : '#546e7a';
+  var roadLine = isNight ? '#37474f' : '#90a4ae';
+
+  /* Building colors */
+  var bld1 = isNight ? '#0d2137' : (isEvening ? '#2c1810' : '#455a64');
+  var bld2 = isNight ? '#0a1929' : (isEvening ? '#1a0f08' : '#37474f');
+  var winOn  = isNight ? '#ffe082' : (isEvening ? '#ffcc02' : '#b3e5fc');
+  var winOff = isNight ? '#102030' : '#607d8b';
+
+  var svg = '<svg width="100%" viewBox="0 0 430 240" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<defs>';
+  svg += '<linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">';
+  svg += '<stop offset="0%" stop-color="'+sky1+'"/>';
+  svg += '<stop offset="55%" stop-color="'+sky2+'"/>';
+  svg += '<stop offset="100%" stop-color="'+sky3+'"/>';
+  svg += '</linearGradient>';
+  svg += '<linearGradient id="gndG" x1="0" y1="0" x2="0" y2="1">';
+  svg += '<stop offset="0%" stop-color="'+g1+'"/>';
+  svg += '<stop offset="100%" stop-color="'+g2+'"/>';
+  svg += '</linearGradient>';
+  if (isNight) {
+    svg += '<radialGradient id="moonG" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fffde7" stop-opacity=".9"/><stop offset="100%" stop-color="#fff9c4" stop-opacity=".4"/></radialGradient>';
+  }
+  svg += '</defs>';
+
+  /* Sky bg */
+  svg += '<rect width="430" height="240" fill="url(#skyG)"/>';
+
+  /* Stars (night only) */
+  if (isNight) {
+    var stars = [[30,15],[80,25],[140,10],[190,30],[250,8],[310,20],[370,14],[60,40],[160,45],[340,35],[400,25],[420,45]];
+    stars.forEach(function(s) {
+      svg += '<circle cx="'+s[0]+'" cy="'+s[1]+'" r="1.2" fill="#fff" opacity=".7" style="animation:starTwinkle '+(1.5+Math.random()*2).toFixed(1)+'s '+(Math.random()).toFixed(1)+'s ease-in-out infinite"/>';
+    });
+  }
+
+  /* Sun (morning/day) */
+  if (isMorn) {
+    svg += '<circle cx="60" cy="55" r="28" fill="#fff8e1" opacity=".18" style="animation:sunPulse 4s ease-in-out infinite;transform-origin:60px 55px"/>';
+    svg += '<circle cx="60" cy="55" r="19" fill="#ffee58" opacity=".9"/>';
+    svg += '<circle cx="60" cy="55" r="13" fill="#fdd835"/>';
+  } else if (isDay) {
+    svg += '<circle cx="360" cy="42" r="30" fill="#fff9c4" opacity=".15" style="animation:sunPulse 5s ease-in-out infinite;transform-origin:360px 42px"/>';
+    svg += '<circle cx="360" cy="42" r="20" fill="#fff176" opacity=".9"/>';
+    svg += '<circle cx="360" cy="42" r="13" fill="#ffee58"/>';
+  } else if (isEvening) {
+    svg += '<circle cx="380" cy="80" r="32" fill="#ff6f00" opacity=".25" style="animation:sunPulse 4s ease-in-out infinite;transform-origin:380px 80px"/>';
+    svg += '<circle cx="380" cy="80" r="22" fill="#ff8f00" opacity=".9"/>';
+    svg += '<circle cx="380" cy="80" r="14" fill="#e65100"/>';
+  }
+
+  /* Moon (night) */
+  if (isNight) {
+    svg += '<circle cx="355" cy="38" r="22" fill="url(#moonG)"/>';
+    svg += '<circle cx="363" cy="32" r="16" fill="'+sky2+'"/>';
+    /* craters */
+    svg += '<circle cx="346" cy="44" r="3" fill="#fffde7" opacity=".25"/>';
+    svg += '<circle cx="358" cy="50" r="2" fill="#fffde7" opacity=".2"/>';
+  }
+
+  /* Clouds */
+  if (!isNight) {
+    var ca = isEvening ? 'rgba(255,160,80,.75)' : 'rgba(255,255,255,.82)';
+    var cb = isEvening ? 'rgba(255,140,60,.65)' : 'rgba(255,255,255,.65)';
+    svg += '<g style="animation:cloudDrift 8s ease-in-out infinite alternate">';
+    svg += '<ellipse cx="160" cy="44" rx="38" ry="14" fill="'+ca+'"/>';
+    svg += '<ellipse cx="183" cy="38" rx="24" ry="14" fill="'+ca+'"/>';
+    svg += '<ellipse cx="140" cy="42" rx="20" ry="11" fill="'+cb+'"/>';
+    svg += '</g>';
+    svg += '<g style="animation:cloudDrift2 10s ease-in-out infinite alternate">';
+    svg += '<ellipse cx="295" cy="32" rx="30" ry="11" fill="'+cb+'"/>';
+    svg += '<ellipse cx="314" cy="27" rx="18" ry="11" fill="'+ca+'"/>';
+    svg += '</g>';
+  } else {
+    /* Night clouds — dark */
+    svg += '<g style="animation:cloudDrift 12s ease-in-out infinite alternate">';
+    svg += '<ellipse cx="140" cy="50" rx="40" ry="13" fill="rgba(255,255,255,.07)"/>';
+    svg += '<ellipse cx="160" cy="44" rx="25" ry="13" fill="rgba(255,255,255,.05)"/>';
+    svg += '</g>';
+  }
+
+  /* Birds (morning & day) */
+  if (isMorn || isDay) {
+    svg += '<g style="animation:birdFly 6s 1s linear infinite">';
+    svg += '<path d="M100,60 Q104,56 108,60" fill="none" stroke="#37474f" stroke-width="1.5" stroke-linecap="round"/>';
+    svg += '<path d="M112,55 Q116,51 120,55" fill="none" stroke="#37474f" stroke-width="1.5" stroke-linecap="round"/>';
+    svg += '</g>';
+  }
+
+  /* Horizon glow (evening) */
+  if (isEvening) {
+    svg += '<ellipse cx="215" cy="155" rx="200" ry="30" fill="#ff6f00" opacity=".18"/>';
+  }
+
+  /* Mountains (background) */
+  var mtn = isNight ? '#0a1e2e' : (isEvening ? '#3e1f0a' : '#558b2f');
+  var mtn2 = isNight ? '#0d2437' : (isEvening ? '#4e2a12' : '#689f38');
+  svg += '<path d="M0,145 L55,88 L110,130 L170,75 L230,118 L290,70 L355,115 L430,80 L430,155 L0,155 Z" fill="'+mtn+'" opacity=".85"/>';
+  svg += '<path d="M0,155 L40,115 L90,138 L155,98 L215,130 L280,92 L340,125 L400,100 L430,118 L430,155 Z" fill="'+mtn2+'" opacity=".7"/>';
+  /* Snow caps */
+  if (!isEvening) {
+    var sc = isNight ? '#e3f2fd' : '#fff';
+    svg += '<path d="M170,75 L158,94 L183,94 Z" fill="'+sc+'" opacity=".7"/>';
+    svg += '<path d="M290,70 L278,87 L303,87 Z" fill="'+sc+'" opacity=".65"/>';
+  }
+
+  /* Ground */
+  svg += '<rect x="0" y="152" width="430" height="88" fill="url(#gndG)"/>';
+
+  /* Ground texture (grass lines) */
+  if (!isNight && !isEvening) {
+    for (var xi = 10; xi < 430; xi += 18) {
+      svg += '<line x1="'+xi+'" y1="152" x2="'+(xi+4)+'" y2="148" stroke="#2e7d32" stroke-width="1" opacity=".5"/>';
+    }
+  }
+
+  /* Road */
+  svg += '<path d="M0,200 L130,165 L300,165 L430,200 L430,240 L0,240Z" fill="'+road+'"/>';
+  /* Road dashes */
+  svg += '<path d="M120,185 L160,180" stroke="'+roadLine+'" stroke-width="2" stroke-dasharray="8,6" opacity=".6"/>';
+  svg += '<path d="M190,178 L240,175" stroke="'+roadLine+'" stroke-width="2" stroke-dasharray="8,6" opacity=".6"/>';
+  svg += '<path d="M265,175 L315,178" stroke="'+roadLine+'" stroke-width="2" stroke-dasharray="8,6" opacity=".6"/>';
+
+  /* ── BUILDINGS ── */
+  /* Building A — tall left */
+  svg += '<rect x="22" y="108" width="52" height="92" rx="2" fill="'+bld1+'"/>';
+  svg += '<rect x="22" y="100" width="52" height="12" rx="2" fill="'+bld2+'"/>'; /* top edge */
+  /* Windows A */
+  var wa = [[28,115],[42,115],[56,115],[28,128],[42,128],[56,128],[28,141],[42,141],[56,141],[28,154],[42,154],[56,154]];
+  wa.forEach(function(w,i){
+    var on = isNight ? (i%3!==1) : (i%4===0);
+    svg += '<rect x="'+w[0]+'" y="'+w[1]+'" width="8" height="6" rx="1" fill="'+(on?winOn:winOff)+'" opacity="'+(on?'1':'.4')+'"/>';
+  });
+  /* Antenna */
+  svg += '<line x1="47" y1="100" x2="47" y2="88" stroke="'+bld2+'" stroke-width="1.5"/>';
+  svg += '<circle cx="47" cy="87" r="2" fill="'+( isNight?'#ef9a9a':'#b0bec5')+'"/>';
+
+  /* Building B — medium left-center */
+  svg += '<rect x="85" y="125" width="38" height="75" rx="2" fill="'+bld2+'"/>';
+  svg += '<rect x="85" y="119" width="38" height="10" rx="1" fill="'+bld1+'"/>';
+  var wb = [[90,131],[103,131],[116,131],[90,143],[103,143],[116,143],[90,155],[103,155],[116,155]];
+  wb.forEach(function(w,i){
+    var on = isNight ? (i%2===0) : false;
+    svg += '<rect x="'+w[0]+'" y="'+w[1]+'" width="8" height="7" rx="1" fill="'+(on?winOn:winOff)+'" opacity="'+(on?'1':'.35')+'"/>';
+  });
+
+  /* Building C — short right */
+  svg += '<rect x="330" y="130" width="46" height="70" rx="2" fill="'+bld1+'"/>';
+  svg += '<rect x="330" y="123" width="46" height="11" rx="2" fill="'+bld2+'"/>';
+  var wc = [[336,137],[350,137],[364,137],[336,151],[350,151],[364,151],[336,165],[350,165]];
+  wc.forEach(function(w,i){
+    var on = isNight ? (i%3!==2) : (i===1||i===4);
+    svg += '<rect x="'+w[0]+'" y="'+w[1]+'" width="8" height="8" rx="1" fill="'+(on?winOn:winOff)+'" opacity="'+(on?'1':'.35')+'"/>';
+  });
+  /* Flag on C */
+  svg += '<line x1="368" y1="123" x2="368" y2="104" stroke="'+bld2+'" stroke-width="1.5"/>';
+  svg += '<path d="M368,104 L382,108 L368,112Z" fill="#ef5350" opacity=".9" style="animation:flagWave .1s ease-in-out infinite"/>';
+
+  /* Building D — tall right-center */
+  svg += '<rect x="385" y="110" width="45" height="90" rx="2" fill="'+bld2+'"/>';
+  svg += '<rect x="385" y="102" width="45" height="12" rx="2" fill="'+bld1+'"/>';
+  var wd = [[390,116],[404,116],[419,116],[390,130],[404,130],[419,130],[390,145],[404,145],[419,145],[390,160],[404,160]];
+  wd.forEach(function(w,i){
+    var on = isNight ? true : (i%5===0||i%5===3);
+    svg += '<rect x="'+w[0]+'" y="'+w[1]+'" width="8" height="7" rx="1" fill="'+(on?winOn:winOff)+'" opacity="'+(on?'1':'.35')+'"/>';
+  });
+
+  /* Factory chimney */
+  svg += '<rect x="272" y="128" width="14" height="40" rx="2" fill="'+bld2+'"/>';
+  svg += '<rect x="293" y="135" width="12" height="33" rx="2" fill="'+bld1+'"/>';
+  if (!isDay && !isMorn) {
+    svg += '<ellipse cx="279" cy="127" rx="8" ry="5" fill="#607d8b" opacity=".5" style="animation:smokeRise 2s ease-in-out infinite"/>';
+    svg += '<ellipse cx="300" cy="133" rx="7" ry="4" fill="#546e7a" opacity=".4" style="animation:smokeRise 2s .7s ease-in-out infinite"/>';
+  }
+
+  /* ── TREES ── */
+  var treeClr = isNight ? '#1b5e20' : (isEvening ? '#33691e' : '#2e7d32');
+  var treeDark = isNight ? '#0d3b11' : (isEvening ? '#1b5e20' : '#1b5e20');
+  var trunkClr = isNight ? '#1a0a00' : '#4e342e';
+  /* Tree 1 */
+  svg += '<rect x="148" y="175" width="6" height="20" rx="2" fill="'+trunkClr+'"/>';
+  svg += '<polygon points="151,145 135,178 167,178" fill="'+treeClr+'"/>';
+  svg += '<polygon points="151,158 138,176 164,176" fill="'+treeDark+'" opacity=".5"/>';
+  /* Tree 2 */
+  svg += '<rect x="200" y="172" width="5" height="18" rx="2" fill="'+trunkClr+'"/>';
+  svg += '<polygon points="203,148 189,175 217,175" fill="'+treeClr+'"/>';
+  /* Tree 3 (palm-ish) — with sway */
+  svg += '<g style="transform-origin:225px 195px;animation:leafSway 3s ease-in-out infinite">';
+  svg += '<rect x="222" y="170" width="6" height="25" rx="2" fill="'+trunkClr+'"/>';
+  svg += '<ellipse cx="225" cy="166" rx="14" ry="8" fill="'+treeClr+'" transform="rotate(-15,225,166)"/>';
+  svg += '<ellipse cx="225" cy="168" rx="12" ry="7" fill="'+treeClr+'" transform="rotate(10,225,168)"/>';
+  svg += '</g>';
+  /* Tree 4 */
+  svg += '<rect x="252" y="176" width="5" height="16" rx="2" fill="'+trunkClr+'"/>';
+  svg += '<polygon points="255,152 243,178 267,178" fill="'+treeClr+'"/>';
+
+  /* ── PERSON ── */
+  /* Person walks along path at bottom of screen */
+  var px = 175, py = 198;
+  var skinC  = '#ffccbc';
+  var clothC = isNight ? '#1565c0' : (isMorn ? '#e65100' : (isDay ? '#1976d2' : '#4a148c'));
+  var pantC  = isNight ? '#0d47a1' : '#37474f';
+  svg += '<g style="animation:personBob 1.8s ease-in-out infinite">';
+  /* Head */
+  svg += '<circle cx="'+px+'" cy="'+(py-28)+'" r="7" fill="'+skinC+'"/>';
+  /* Hair */
+  svg += '<path d="M'+(px-7)+','+(py-31)+' Q'+px+','+(py-39)+' '+(px+7)+','+(py-31)+' Z" fill="#3e2723"/>';
+  /* Body */
+  svg += '<rect x="'+(px-7)+'" y="'+(py-20)+'" width="14" height="14" rx="3" fill="'+clothC+'"/>';
+  /* Bag */
+  svg += '<rect x="'+(px+5)+'" y="'+(py-18)+'" width="8" height="10" rx="2" fill="'+clothC+'" opacity=".7"/>';
+  svg += '<line x1="'+(px+5)+'" y1="'+(py-18)+'" x2="'+(px+2)+'" y2="'+(py-22)+'" stroke="'+clothC+'" stroke-width="1.2"/>';
+  /* Legs */
+  svg += '<rect x="'+(px-6)+'" y="'+(py-6)+'" width="6" height="10" rx="2" fill="'+pantC+'"/>';
+  svg += '<rect x="'+(px+1)+'" y="'+(py-6)+'" width="6" height="10" rx="2" fill="'+pantC+'"/>';
+  /* Shoes */
+  svg += '<ellipse cx="'+(px-3)+'" cy="'+(py+4)+'" rx="5" ry="2.5" fill="#1a1a1a"/>';
+  svg += '<ellipse cx="'+(px+4)+'" cy="'+(py+4)+'" rx="5" ry="2.5" fill="#1a1a1a"/>';
+  /* Arms */
+  svg += '<path d="M'+(px-7)+','+(py-18)+' Q'+(px-13)+','+(py-12)+' '+(px-10)+','+(py-6)+'" fill="none" stroke="'+clothC+'" stroke-width="4" stroke-linecap="round"/>';
+  svg += '<path d="M'+(px+7)+','+(py-18)+' Q'+(px+13)+','+(py-12)+' '+(px+9)+','+(py-6)+'" fill="none" stroke="'+clothC+'" stroke-width="4" stroke-linecap="round"/>';
+  /* Hand holding phone */
+  svg += '<rect x="'+(px+9)+'" y="'+(py-10)+'" width="5" height="8" rx="1" fill="#212121"/>';
+  svg += '<rect x="'+(px+9.5)+'" y="'+(py-9)+'" width="4" height="6" rx=".5" fill="#29b6f6" opacity=".8"/>';
+  svg += '</g>';
+
+  /* ── STREET LAMP ── */
+  var lampPost = isNight ? '#37474f' : '#607d8b';
+  svg += '<rect x="317" y="162" width="4" height="38" rx="1" fill="'+lampPost+'"/>';
+  svg += '<path d="M321,162 Q328,158 330,155" fill="none" stroke="'+lampPost+'" stroke-width="2.5" stroke-linecap="round"/>';
+  if (isNight) {
+    svg += '<circle cx="330" cy="154" r="5" fill="#fff176" opacity=".9"/>';
+    svg += '<ellipse cx="330" cy="160" rx="12" ry="6" fill="#fff176" opacity=".12"/>';
+  } else {
+    svg += '<circle cx="330" cy="154" r="4" fill="#cfd8dc"/>';
+  }
+
+  /* ── CAR ── */
+  var carX = 240, carY = 186;
+  var carBody = isNight ? '#1565c0' : '#1976d2';
+  var carRoof = isNight ? '#0d47a1' : '#1565c0';
+  svg += '<rect x="'+carX+'" y="'+(carY-10)+'" width="54" height="14" rx="4" fill="'+carBody+'"/>';
+  svg += '<path d="M'+(carX+8)+','+(carY-10)+' Q'+(carX+12)+','+(carY-22)+' '+(carX+22)+','+(carY-23)+' L'+(carX+38)+','+(carY-23)+' Q'+(carX+48)+','+(carY-22)+' '+(carX+48)+','+(carY-10)+'Z" fill="'+carRoof+'"/>';
+  /* Windshields */
+  svg += '<path d="M'+(carX+14)+','+(carY-21)+' Q'+(carX+17)+','+(carY-26)+' '+(carX+22)+','+(carY-26)+' L'+(carX+34)+','+(carY-26)+' Q'+(carX+38)+','+(carY-25)+' '+(carX+40)+','+(carY-21)+'Z" fill="#b3e5fc" opacity=".7"/>';
+  /* Wheels */
+  svg += '<circle cx="'+(carX+13)+'" cy="'+(carY+4)+'" r="7" fill="#1a1a1a"/>';
+  svg += '<circle cx="'+(carX+13)+'" cy="'+(carY+4)+'" r="3.5" fill="#37474f"/>';
+  svg += '<circle cx="'+(carX+42)+'" cy="'+(carY+4)+'" r="7" fill="#1a1a1a"/>';
+  svg += '<circle cx="'+(carX+42)+'" cy="'+(carY+4)+'" r="3.5" fill="#37474f"/>';
+  /* Lights */
+  if (isNight) {
+    svg += '<rect x="'+(carX+51)+'" y="'+(carY-8)+'" width="5" height="4" rx="1" fill="#fff176" opacity=".9"/>';
+    svg += '<rect x="'+(carX-2)+'" y="'+(carY-8)+'" width="5" height="4" rx="1" fill="#ef9a9a" opacity=".8"/>';
+    svg += '<ellipse cx="'+(carX+58)+'" cy="'+(carY-6)+'" rx="15" ry="5" fill="#fff9c4" opacity=".15"/>';
+  }
+
+  /* Water/river */
+  var wc1 = isNight ? '#0d47a1' : (isEvening ? '#4a148c' : '#1565c0');
+  var wc2 = isNight ? '#1565c0' : (isEvening ? '#6a1b9a' : '#1976d2');
+  svg += '<ellipse cx="60" cy="210" rx="55" ry="14" fill="'+wc1+'" opacity=".55" style="animation:waterShimmer 3s ease-in-out infinite"/>';
+  svg += '<ellipse cx="55" cy="212" rx="40" ry="9" fill="'+wc2+'" opacity=".35" style="animation:waterShimmer 3s 1s ease-in-out infinite"/>';
+  /* Reflection shimmer */
+  if (!isNight) {
+    svg += '<ellipse cx="60" cy="208" rx="18" ry="4" fill="#fff" opacity=".2"/>';
+  } else {
+    /* Moon reflection */
+    svg += '<ellipse cx="52" cy="210" rx="10" ry="3" fill="#fff9c4" opacity=".25"/>';
+  }
+
+  svg += '</svg>';
+  document.getElementById('sceneWrap').innerHTML = svg;
+}
+
+/* ── GREETING ── */
+function updateGreeting() {
+  var h = new Date().getHours();
+  var greet, sub;
+  if      (h >= 5  && h < 12) { greet = 'อรุณสวัสดิ์ครับ ☀️'; sub = 'เริ่มต้นวันใหม่ที่ดีครับ'; }
+  else if (h >= 12 && h < 17) { greet = 'สวัสดีตอนบ่ายครับ 🌤️'; sub = 'เลือกแอปที่ต้องการใช้งาน'; }
+  else if (h >= 17 && h < 20) { greet = 'สวัสดีตอนเย็นครับ 🌅'; sub = 'พักผ่อนหลังเลิกงานนะครับ'; }
+  else                         { greet = 'สวัสดียามค่ำคืนครับ 🌙'; sub = 'ขอให้พักผ่อนหลับสบายครับ'; }
+  document.getElementById('greetTxt').textContent = greet;
+  document.getElementById('greetSub').textContent = sub;
+}
+
+/* ── CLOCK ── */
+var TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var TH_D = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+function tick(){
+  var n = new Date();
+  document.getElementById('clk').textContent =
+    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('clkDate').textContent =
+    TH_D[n.getDay()]+' '+n.getDate()+' '+TH_M[n.getMonth()]+' '+(n.getFullYear()+543);
+}
+
+/* ── PILL TOGGLE ── */
+var _barOpen = false;
+var _autoClose;
+
+function toggleBar(){
+  _barOpen = !_barOpen;
+  document.getElementById('tbwrap').classList.toggle('bar-open', _barOpen);
+  clearTimeout(_autoClose);
+  if(_barOpen){
+    _autoClose = setTimeout(function(){
+      _barOpen = false;
+      document.getElementById('tbwrap').classList.remove('bar-open');
+    }, 4000);
+  }
+}
+
+function _setMode(m){ // 'home' | 'app'
+  var w = document.getElementById('tbwrap');
+  w.classList.remove('mode-home','mode-app','bar-open');
+  w.classList.add('mode-'+m);
+  _barOpen = false;
+  clearTimeout(_autoClose);
+}
+
+/* ── NAVIGATION ── */
+function setTabs(a){
+  ['home','manager','employee'].forEach(function(t){
+    document.getElementById('tb-'+t).classList.toggle('on', t===a);
+  });
+}
+
+function _setPillLabel(k){
+  var el = document.getElementById('pillTxt');
+  if(k==='manager') el.innerHTML='<i class="fas fa-user-shield" style="color:#2563eb;"></i> OT Approval';
+  else              el.innerHTML='<i class="fas fa-clock" style="color:#d97706;"></i> OT & Leave';
+}
+
+function openApp(k){
+  document.getElementById('vHome').classList.remove('active');
+  document.getElementById('vManager').classList.remove('active');
+  document.getElementById('vEmployee').classList.remove('active');
+  document.getElementById(k==='manager'?'vManager':'vEmployee').classList.add('active');
+  setTabs(k);
+  _setMode('app');
+  _setPillLabel(k);
+  if(!_loaded[k]){
+    document.getElementById(k==='manager'?'ifrMgr':'ifrEmp').src = URLS[k];
+  }
+}
+
+function goApp(k){
+  /* กดจาก tab bar ตอน bar เปิด — ปิด bar ก่อนแล้วค่อย navigate */
+  _barOpen = false;
+  clearTimeout(_autoClose);
+  document.getElementById('tbwrap').classList.remove('bar-open');
+  openApp(k);
+}
+
+function switchToApp(k){ goApp(k); }
+
+function closeApp(){
+  _barOpen = false;
+  clearTimeout(_autoClose);
+  document.getElementById('vManager').classList.remove('active');
+  document.getElementById('vEmployee').classList.remove('active');
+  document.getElementById('vHome').classList.add('active');
+  setTabs('home');
+  _setMode('home');
+}
+function reloadApp(k){
+  _loaded[k]=false;
+  document.getElementById(k==='manager'?'ldMgr':'ldEmp').classList.remove('done');
+  document.getElementById(k==='manager'?'ifrMgr':'ifrEmp').src=URLS[k];
+  toast('Reloading...','i');
+}
+function onLoad(k){
+  if(document.getElementById(k==='manager'?'ifrMgr':'ifrEmp').src==='about:blank')return;
+  _loaded[k]=true;
+  setTimeout(function(){document.getElementById(k==='manager'?'ldMgr':'ldEmp').classList.add('done');},350);
+}
+
+/* ── TOAST ── */
+function toast(msg,t){
+  var w=document.getElementById('tw'),el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML='<i class="fas fa-circle-info ti"></i><span>'+msg+'</span>';
+  w.appendChild(el);
+  setTimeout(function(){el.classList.add('out');setTimeout(function(){el.remove();},230);},2400);
+}
+
+/* ── PORTAL DATA (News + Holidays) ── */
+var _newsData = [];
+var _holData  = [];
+var TH_MON_F  = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+var TH_MON_S  = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var TH_DAY_F  = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+function loadPortalData(){
+  if(typeof google === 'undefined'){
+    // Demo data
+    _newsData = [
+      {date:'25/05/2569',tag:'แจ้งเพื่อทราบ',title:'กีฬาสีประจำปี',body:'ขอเชิญพนักงานทุกท่านร่วมโหลดประเภทกีฬา เพื่อเป็นกิจกรรมร่วมสนุกการแข่งขันกีฬาของแต่ละประเภท',imgUrl:'https://img1.pic.in.th/images/profile_3135789.png'},
+      {date:'20/05/2569',tag:'ด่วน',title:'หยุดจ่ายน้ำชั่วคราว',body:'วันที่ 28 พ.ค. 08:00–12:00 น. งดใช้น้ำบริเวณโซน A และ B',imgUrl:''}
+    ];
+    _holData = [
+      {date:'03/06/2569',name:'วันเฉลิมพระชนมพรรษาสมเด็จพระราชินี'},
+      {date:'28/07/2569',name:'วันเฉลิมพระชนมพรรษา ร.10'},
+      {date:'12/08/2569',name:'วันแม่แห่งชาติ'},
+      {date:'13/10/2569',name:'วันคล้ายวันสวรรคต ร.9'},
+      {date:'23/10/2569',name:'วันปิยมหาราช'},
+      {date:'05/12/2569',name:'วันพ่อแห่งชาติ'},
+      {date:'10/12/2569',name:'วันรัฐธรรมนูญ'},
+      {date:'31/12/2569',name:'วันสิ้นปี'}
+    ];
+    renderNews();
+    renderHoliday();
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(res && res.success){
+        _newsData = res.news     || [];
+        _holData  = res.holidays || [];
+      } else {
+        /* res มาแต่ success=false */
+        console.warn('getPortalData failed:', res ? res.message : 'no response');
+      }
+      renderNews();
+      renderHoliday();
+    })
+    .withFailureHandler(function(err){
+      /* GAS throw error */
+      console.error('getPortalData error:', err);
+      renderNews();
+      renderHoliday();
+    })
+    .getPortalData();
+}
+
+/* ── RENDER NEWS ── */
+function renderNews(){
+  var el = document.getElementById('newsSection');
+  if(!_newsData.length){
+    el.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;color:var(--text3);font-size:12px;"><i class="fas fa-inbox" style="font-size:20px;display:block;margin-bottom:8px;"></i>ยังไม่มีข่าวสาร</div>';
+    return;
+  }
+  el.innerHTML = _newsData.slice(0,5).map(function(n){
+    var tc = n.tag==='ด่วน'?'urgent':(n.tag==='แจ้งเพื่อทราบ'?'info':'normal');
+    var ic = tc==='urgent'?'ni-ico-urg':(tc==='info'?'ni-ico-inf':'ni-ico-nrm');
+    var fa = tc==='urgent'?'fa-triangle-exclamation':(tc==='info'?'fa-circle-info':'fa-bullhorn');
+    var tg = tc==='urgent'?'ni-tag-urg':(tc==='info'?'ni-tag-inf':'ni-tag-nrm');
+    var hasImg = n.imgUrl && n.imgUrl.indexOf('http')===0;
+    var nEnc = encodeURIComponent(JSON.stringify(n));
+    return '<div class="news-item ni-'+tc+'" onclick="openNewsDetail(decodeURIComponent(\''+nEnc+'\'))">'+
+      '<div class="ni-icon '+ic+'"><i class="fas '+fa+'"></i></div>'+
+      '<div class="ni-body">'+
+        '<div class="ni-top"><span class="ni-tag '+tg+'">'+esc(n.tag)+'</span><span class="ni-date">'+esc(n.date)+'</span></div>'+
+        '<div class="ni-title">'+esc(n.title)+'</div>'+
+        '<div class="ni-preview">'+esc((n.body||'').substring(0,55)+(n.body&&n.body.length>55?'…':''))+'</div>'+
+      '</div>'+
+      (hasImg?'<img class="ni-thumb" src="'+esc(n.imgUrl)+'" onerror="this.style.display=\'none\'">':'')+
+      '<i class="fas fa-chevron-right ni-arr"></i>'+
+    '</div>';
+  }).join('');
+}
+
+/* ── RENDER HOLIDAY ── */
+function renderHoliday(){
+  var el = document.getElementById('holSection');
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  // หาวันหยุดถัดไป
+  var next = null;
+  var sorted = _holData.map(function(h){ return {h:h, d:_parsePortalDate(h.date)}; })
+    .filter(function(x){ return x.d && x.d >= today; })
+    .sort(function(a,b){ return a.d-b.d; });
+
+  if(!sorted.length){
+    el.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;color:var(--text3);font-size:12px;"><i class="fas fa-calendar-check" style="font-size:20px;display:block;margin-bottom:8px;"></i>ไม่มีวันหยุดที่กำลังจะมาถึง</div>';
+    return;
+  }
+
+  next = sorted[0];
+  var diffDays = Math.round((next.d.getTime()-today.getTime())/(1000*60*60*24));
+  var hd = next.d;
+  var dayName = 'วัน'+TH_DAY_F[hd.getDay()];
+  var dateStr = hd.getDate()+' '+TH_MON_S[hd.getMonth()]+' '+(hd.getFullYear()+543);
+
+  el.innerHTML = '<div class="hol-next" onclick="openHolModal()">'+
+    '<div class="hol-next-icon">🎌</div>'+
+    '<div class="hol-next-info">'+
+      '<div class="hol-next-label"><i class="fas fa-calendar-check"></i> วันหยุดถัดไป</div>'+
+      '<div class="hol-next-name">'+esc(next.h.name)+'</div>'+
+      '<div class="hol-next-date">'+dayName+' · '+dateStr+'</div>'+
+    '</div>'+
+    '<div class="hol-next-days">'+
+      '<div class="hol-days-num">'+(diffDays===0?'🎉':diffDays)+'</div>'+
+      '<div class="hol-days-lbl">'+(diffDays===0?'วันนี้':'วันข้างหน้า')+'</div>'+
+    '</div>'+
+  '</div>';
+}
+
+/* ── NEWS DETAIL MODAL ── */
+function openNewsDetail(nStr){
+  var n = typeof nStr==='string' ? JSON.parse(nStr) : nStr;
+  var tc = n.tag==='ด่วน'?'urgent':(n.tag==='แจ้งเพื่อทราบ'?'info':'normal');
+  var tg = tc==='urgent'?'ni-tag-urg':(tc==='info'?'ni-tag-inf':'ni-tag-nrm');
+  var fa = tc==='urgent'?'fa-triangle-exclamation':(tc==='info'?'fa-circle-info':'fa-bullhorn');
+  document.getElementById('ndTag').innerHTML = '<span class="ni-tag '+tg+'" style="padding:5px 12px;font-size:11px;"><i class="fas '+fa+'"></i> '+esc(n.tag)+'</span>';
+  var iw = document.getElementById('ndImgWrap');
+  var im = document.getElementById('ndImg');
+  if(n.imgUrl && n.imgUrl.indexOf('http')===0){ im.src=n.imgUrl; iw.style.display='block'; }
+  else { iw.style.display='none'; im.src=''; }
+  document.getElementById('ndTitle').textContent = n.title||'';
+  document.getElementById('ndDate').innerHTML = '<i class="fas fa-calendar" style="font-size:10px;color:var(--text3);margin-right:4px;"></i>'+esc(n.date||'');
+  document.getElementById('ndBody').textContent = n.body||'';
+  document.getElementById('newsModal').classList.remove('hidden');
+}
+function closeNewsModal(){ document.getElementById('newsModal').classList.add('hidden'); }
+
+/* ── HOLIDAY LIST MODAL ── */
+function openHolModal(){
+  var el = document.getElementById('holList');
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  // จัดกลุ่มตามเดือน
+  var grouped = {};
+  _holData.forEach(function(h){
+    var d = _parsePortalDate(h.date);
+    var mi = d ? d.getMonth() : parseInt(h.date.split('/')[1])-1;
+    if(!grouped[mi]) grouped[mi]=[];
+    grouped[mi].push({h:h,d:d});
+  });
+
+  var html = '';
+  var targetId = null;
+  var curMonth = today.getMonth();
+
+  for(var i=0;i<12;i++){
+    if(!grouped[i]||!grouped[i].length) continue;
+    var mId = 'hm-'+i;
+    if(i>=curMonth && !targetId) targetId = mId;
+    html += '<div class="hol-month" id="'+mId+'"><i class="fas fa-calendar-day"></i> '+TH_MON_F[i]+'</div>';
+    grouped[i].forEach(function(x){
+      var d=x.d, passed=d&&d<today;
+      var dn=d?TH_DAY_F[d.getDay()]:'';
+      var num=d?d.getDate():x.h.date.split('/')[0];
+      var mon=d?TH_MON_S[d.getMonth()]:'';
+      html += '<div class="hol-row'+(passed?' passed':'')+'">'+
+        '<div class="hol-date-box"><div class="hol-dm">'+mon+'</div><div class="hol-dd">'+num+'</div></div>'+
+        '<div style="flex:1;">'+
+          '<div class="hol-info-name">'+esc(x.h.name)+'</div>'+
+          '<div class="hol-info-sub">วัน'+dn+' ('+esc(x.h.date)+') <span class="hol-badge '+(passed?'hol-badge-pa':'hol-badge-up')+'">'+(passed?'ผ่านมาแล้ว':'เร็วๆ นี้')+'</span></div>'+
+        '</div>'+
+      '</div>';
+    });
+  }
+
+  if(!html) html='<div style="text-align:center;padding:30px;color:var(--text3);">ไม่มีข้อมูลวันหยุด</div>';
+  el.innerHTML = html;
+  document.getElementById('holModal').classList.remove('hidden');
+
+  // Auto scroll ไปเดือนปัจจุบัน
+  if(targetId) setTimeout(function(){
+    var t=document.getElementById(targetId);
+    if(t&&el) el.scrollTo({top:t.offsetTop-10,behavior:'smooth'});
+  },300);
+}
+function closeHolModal(){ document.getElementById('holModal').classList.add('hidden'); }
+
+/* ── PARSE DATE DD/MM/YYYY (พ.ศ.) ── */
+function _parsePortalDate(s){
+  if(!s) return null;
+  var p=String(s).split('/'); if(p.length!==3) return null;
+  var y=parseInt(p[2]); if(y>2400) y-=543;
+  return new Date(y,parseInt(p[1])-1,parseInt(p[0]),12,0,0);
+}
+
+/* ── INIT ── */
+function _initApp(){
+  tick();
+  buildScene();
+  updateGreeting();
+  loadPortalData();
+  setInterval(tick, 10000);
+
+  /* Bind iframe load events */
+  document.getElementById('ifrMgr').addEventListener('load', function(){ onLoad('manager'); });
+  document.getElementById('ifrEmp').addEventListener('load', function(){ onLoad('employee'); });
+
+  /* Hide splash */
+  setTimeout(function(){
+    var s = document.getElementById('splash');
+    s.style.transition = 'opacity .5s ease';
+    s.style.opacity = '0';
+    setTimeout(function(){ s.style.display = 'none'; }, 520);
+  }, 1700);
+
+  /* Fullscreen setup */
+  var ov = document.getElementById('fsov');
+  var sb = document.getElementById('fsSub');
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  var isSA  = (navigator.standalone === true) ||
+              window.matchMedia('(display-mode:standalone)').matches;
+
+  function dismiss(){
+    ov.style.transition = 'opacity .35s';
+    ov.style.opacity = '0';
+    setTimeout(function(){ ov.style.display = 'none'; }, 360);
+  }
+  function tryFS(){
+    try {
+      var el = document.documentElement;
+      var r  = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+      if(r) r.call(el);
+    } catch(e) {}
+  }
+  function watchExit(){
+    function h(){
+      var inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if(!inFS){
+        ov.style.transition = '';
+        ov.style.opacity = '1';
+        ov.style.display = 'flex';
+        sb.innerHTML = 'GIH Portal<br><span style="font-size:11px;opacity:.5;">แตะเพื่อกลับโหมดเต็มจอ</span>';
+      }
+    }
+    document.addEventListener('fullscreenchange', h);
+    document.addEventListener('webkitfullscreenchange', h);
+  }
+
+  if(isSA){
+    ov.style.display = 'none';
+  } else if(isIOS){
+    sb.innerHTML = 'iPhone: tap <b style="color:#93c5fd;">Share</b> → <b style="color:#93c5fd;">Add to Home Screen</b><br><span style="opacity:.5;font-size:11px;">or tap to continue</span>';
+  } else {
+    sb.innerHTML = 'Giant Inter Holding<br><span style="opacity:.5;font-size:11px;">กำลังเข้าสู่โหมดเต็มจอ...</span>';
+    watchExit();
+  }
+
+  /* Bind fsov click — ทำงานได้แน่นอน เพราะอยู่หลัง DOM ready */
+  ov.addEventListener('click', function(){
+    if(!isIOS) tryFS();
+    dismiss();
+  });
+}
+
+/* เรียกหลัง DOM โหลดเสร็จ */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', _initApp);
+} else {
+  _initApp();
+}
+</script>
+</body>
+</html>
