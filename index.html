@@ -402,13 +402,87 @@ body{font-family:var(--ff-th);color:var(--text);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes blk{0%,100%{background:rgba(255,255,255,.2);}50%{background:#60a5fa;}}
 
-/* FULLSCREEN OVERLAY */
-#fsov{position:fixed;inset:0;z-index:99999;background:rgba(15,20,30,.96);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:44px 32px;cursor:pointer;color:#fff;}
-.fs-ico{width:84px;height:84px;background:rgba(37,99,235,.2);border:2px solid rgba(96,165,250,.35);border-radius:26px;display:flex;align-items:center;justify-content:center;animation:popIn 1s ease both;}
-.fs-ico i{font-size:36px;color:#93c5fd;}
-.fs-title{font-family:var(--ff-en);font-size:26px;font-weight:800;letter-spacing:-.5px;}
-.fs-sub{font-size:13px;color:rgba(255,255,255,.55);line-height:1.75;}
-.fs-btn{font-family:var(--ff-en);font-size:13px;font-weight:600;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:13px 40px;letter-spacing:.01em;}
+/* =========================================
+   FULLSCREEN OVERLAY (PREMIUM ENTRY)
+========================================= */
+#fsov {
+  position: fixed; inset: 0; z-index: 99999;
+  background: rgba(10, 15, 28, 0.85); /* โทนสีกรมท่าเข้ม */
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: 80px 24px 40px; cursor: pointer; color: #fff;
+  overflow: hidden;
+  transition: opacity 0.4s ease;
+}
+
+/* แสง Glow พื้นหลังให้ดูมีมิติ */
+.fsov-glow {
+  position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(37,99,235,0.25) 0%, rgba(0,0,0,0) 70%);
+  z-index: 1; pointer-events: none;
+}
+
+.fsov-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  margin-top: auto; margin-bottom: auto;
+}
+
+/* ไอคอน */
+.fs-ico {
+  width: 76px; height: 76px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 28px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  animation: fsFloat 4s ease-in-out infinite;
+}
+.fs-ico i { font-size: 32px; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+
+/* ข้อความ */
+.fs-title {
+  font-family: var(--ff-en); font-size: 28px; font-weight: 800;
+  letter-spacing: -0.3px; margin-bottom: 8px;
+  background: linear-gradient(180deg, #ffffff 0%, #94a3b8 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.fs-sub {
+  font-family: var(--ff-th); font-size: 13px; color: rgba(255,255,255,0.6); 
+  line-height: 1.6; max-width: 280px;
+}
+
+/* ปุ่มเข้าสู่ระบบ */
+.fs-btn {
+  margin-top: 45px; position: relative;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  padding: 14px 40px; border-radius: 99px;
+  color: #fff; font-family: var(--ff-en); font-size: 14px; font-weight: 600;
+  letter-spacing: 0.5px; overflow: hidden;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+  transition: all 0.3s ease;
+}
+.fs-btn:active { transform: scale(0.96); background: rgba(37, 99, 235, 0.3); }
+.fs-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: translateX(-100%);
+  animation: fsShine 2.5s infinite;
+}
+
+/* เครดิตด้านล่าง */
+.fsov-footer {
+  position: relative; z-index: 2;
+  font-family: var(--ff-en); font-size: 10px; color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+@keyframes fsFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes fsShine { 100% { transform: translateX(100%); } }
 
 /* Card entrance */
 @keyframes slideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
@@ -666,11 +740,21 @@ body{font-family:var(--ff-th);color:var(--text);}
 
 <div class="tw" id="tw"></div>
 
+<!-- FULLSCREEN OVERLAY -->
 <div id="fsov">
-  <div class="fs-ico"><i class="fas fa-building"></i></div>
-  <div class="fs-title">GIH Portal</div>
-  <div class="fs-sub" id="fsSub">กำลังเตรียมระบบ...</div>
-  <div class="fs-btn">แตะเพื่อเริ่มใช้งาน</div>
+  <div class="fsov-glow"></div>
+  
+  <div class="fsov-content">
+    <div class="fs-ico"><i class="fas fa-fingerprint"></i></div>
+    <div class="fs-title">GIH PORTAL</div>
+    <div class="fs-sub" id="fsSub">Secure Enterprise Access<br>กำลังตรวจสอบระบบรักษาความปลอดภัย...</div>
+    
+    <div class="fs-btn">
+      แตะเพื่อเข้าสู่ระบบ <i class="fas fa-arrow-right" style="font-size:12px; opacity:0.8;"></i>
+    </div>
+  </div>
+
+  <div class="fsov-footer">Giant Inter Holding Co., Ltd.</div>
 </div>
 
 <script>
@@ -1302,7 +1386,7 @@ function _initApp(){
     setTimeout(function(){ s.style.display = 'none'; }, 520);
   }, 1700);
 
-  /* Fullscreen setup */
+/* Fullscreen setup */
   var ov = document.getElementById('fsov');
   var sb = document.getElementById('fsSub');
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || '');
@@ -1328,7 +1412,8 @@ function _initApp(){
         ov.style.transition = '';
         ov.style.opacity = '1';
         ov.style.display = 'flex';
-        sb.innerHTML = 'GIH Portal<br><span style="font-size:11px;opacity:.5;">แตะเพื่อกลับโหมดเต็มจอ</span>';
+        // เปลี่ยนข้อความตอนเผลอกดออกจากระบบ
+        sb.innerHTML = 'ระบบจัดการทรัพยากรบุคคลและองค์กร<br><span style="font-size:12px;opacity:.6;display:block;margin-top:6px;">แตะหน้าจอเพื่อดำเนินการต่อ</span>';
       }
     }
     document.addEventListener('fullscreenchange', h);
@@ -1338,9 +1423,10 @@ function _initApp(){
   if(isSA){
     ov.style.display = 'none';
   } else if(isIOS){
-    sb.innerHTML = 'iPhone: tap <b style="color:#93c5fd;">Share</b> → <b style="color:#93c5fd;">Add to Home Screen</b><br><span style="opacity:.5;font-size:11px;">or tap to continue</span>';
+    sb.innerHTML = 'เพื่อประสบการณ์ที่ดีที่สุดบน iOS<br>กด <b style="color:#93c5fd;">Share</b> <i class="fas fa-share-square"></i> และเลือก <b style="color:#93c5fd;">Add to Home Screen</b>';
   } else {
-    sb.innerHTML = 'Giant Inter Holding<br><span style="opacity:.5;font-size:11px;">กำลังเข้าสู่โหมดเต็มจอ...</span>';
+    // เปลี่ยนข้อความก่อนเข้าใช้งานครั้งแรก
+    sb.innerHTML = 'ระบบจัดการทรัพยากรบุคคลและองค์กร<br><span style="opacity:.6; font-size:12px; display:block; margin-top:6px;">แตะหน้าจอเพื่อดำเนินการต่อ</span>';
     watchExit();
   }
 
